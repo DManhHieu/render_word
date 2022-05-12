@@ -1,0 +1,27 @@
+{
+  "demo": "Demo render Docx from template and JSON",
+  "name": "Doan Hieu",
+  "table_name": [
+    {
+      "stt": "STT",
+      "name": "Ho va ten",
+      "date": "Ngay sinh",
+      "note": "Ghi chú",
+      "address": "Địa chỉ"
+    },
+    {
+      "stt": "1",
+      "name": "Nguyen Van A",
+      "date": "1/2/2000",
+      "note": "Developer",
+      "address": "Viet Nam"
+    },
+    {
+      "stt": "2",
+      "name": "Nguyen Van B",
+      "date": "10/2/2000",
+      "note": "Java",
+      "address": "Viet Nam"
+    }
+  ]
+}

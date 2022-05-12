@@ -1,12 +1,7 @@
-package org.dhieu.render_word;
+package org.dhieu.rw;
 
-import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.io.IOException;
-
-import static org.dhieu.render_word.RenderWordUtil.renderWord;
 
 public class RenderJsonTemplate {
 
@@ -22,10 +17,12 @@ public class RenderJsonTemplate {
 
         jsonObject.put("table_name", jsonArray);
         jsonObject.put("name", "Đoàn Hiếu");
+        jsonObject.put("image1.jpeg", "https://znews-photo.zingcdn.me/w860/Uploaded/tmuizn/2022_04_27/elon_musk_spaceX_reuters.jpg");
         try {
             RenderWordUtil.renderWord(jsonObject, "demo.docx", "simple.docx");
-        } catch (IOException | OpenXML4JException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("ERROR");
+            System.out.println(e.getMessage());
         }
     }
 

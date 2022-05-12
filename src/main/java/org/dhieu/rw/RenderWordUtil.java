@@ -1,4 +1,4 @@
-package org.dhieu.render_word;
+package org.dhieu.rw;
 
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.xwpf.usermodel.*;
@@ -9,6 +9,8 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,10 +33,10 @@ public final class RenderWordUtil {
             }
 
             for (XWPFHeader xwpfHeader : doc.getHeaderList()) {
-                renderHeader(xwpfHeader, jsonObject);
+                renderHeaderFooter(xwpfHeader, jsonObject);
             }
             for (XWPFFooter xwpfFooter : doc.getFooterList()) {
-                renderFooter(xwpfFooter, jsonObject);
+                renderHeaderFooter(xwpfFooter, jsonObject);
             }
 
             for (XWPFPictureData pictureData : doc.getAllPictures()) {
@@ -45,11 +47,18 @@ public final class RenderWordUtil {
     }
 
 
-    private static void renderFooter(XWPFFooter xwpfFooter, JSONObject jsonObject) {
+    private static <T extends XWPFHeaderFooter> void renderHeaderFooter(T xwpfFooter, JSONObject jsonObject) {
+        for (XWPFParagraph paragraph : xwpfFooter.getParagraphs()) {
+            renderParagraph(paragraph, jsonObject);
+        }
+        for (XWPFTable table : xwpfFooter.getTables()) {
+            renderTable(table, jsonObject);
+        }
+        for (XWPFPictureData pictureData : xwpfFooter.getAllPictures()) {
+            renderPicture(pictureData, jsonObject);
+        }
     }
 
-    private static void renderHeader(XWPFHeader xwpfHeader, JSONObject jsonObject) {
-    }
 
     private static void writeOutput(XWPFDocument doc, String output) {
         try (FileOutputStream out = new FileOutputStream(output)) {
@@ -65,19 +74,34 @@ public final class RenderWordUtil {
     }
 
     private static void renderPicture(XWPFPictureData pictureData, JSONObject jsonObject) {
-        System.out.println(pictureData);
+        try {
+
+            if (jsonObject.get(pictureData.getFileName()) != null && !jsonObject.get(pictureData.getFileName()).toString().isBlank()) {
+                try (
+                        InputStream inputStream = new URL((String) jsonObject.get(pictureData.getFileName())).openStream();
+                        OutputStream outputStream = pictureData.getPackagePart().getOutputStream();
+                ) {
+                    byte[] buffer = new byte[2048];
+                    int lenth;
+                    while ((lenth = inputStream.read(buffer)) > 0) {
+                        outputStream.write(buffer, 0, lenth);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("ERROR");
+            System.out.println(e.getMessage());
+        }
+        System.out.println(pictureData.getFileName());
+        System.out.println(jsonObject.get(pictureData.getFileName()));
     }
 
-    private static void renderParagraphType(XWPFParagraph paragraph, JSONObject jsonObject) {
+    private static void renderParagraph(XWPFParagraph paragraph, JSONObject jsonObject) {
         if (paragraph.getRuns() != null) {
             for (XWPFRun run : paragraph.getRuns()) {
                 fillObject(run, jsonObject);
             }
         }
-    }
-
-    private static void renderParagraph(XWPFParagraph paragraph, JSONObject jsonObject) {
-        renderParagraphType(paragraph, jsonObject);
     }
 
     private static void fillObject(XWPFRun run, JSONObject jsonObject) {

@@ -6,22 +6,20 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public final class RenderWordUtil {
-    public static void renderWord(JSONObject jsonObject, String urlTemplate, String output) throws IOException, OpenXML4JException {
+public abstract class BaseRenderWord {
+    public void render(JSONObject jsonObject, String urlTemplate, String output) throws IOException, OpenXML4JException {
         InputStream input = readTemplate(urlTemplate);
-        renderWord(jsonObject, input, output);
+        render(jsonObject, input, output);
     }
 
-    public static void renderWord(JSONObject jsonObject, InputStream input, String output) throws IOException {
+    public void render(JSONObject jsonObject, InputStream input, String output) throws IOException {
 
         try (XWPFDocument doc = new XWPFDocument(input)) {
             for (XWPFTable table : doc.getTables()) {
@@ -46,8 +44,13 @@ public final class RenderWordUtil {
         }
     }
 
+    protected abstract void writeOutput(XWPFDocument doc, String output);
 
-    private static <T extends XWPFHeaderFooter> void renderHeaderFooter(T xwpfFooter, JSONObject jsonObject) {
+    protected abstract InputStream readTemplate(String urlTemplate);
+
+    protected abstract InputStream getImage(String url) throws IOException;
+
+    private <T extends XWPFHeaderFooter> void renderHeaderFooter(T xwpfFooter, JSONObject jsonObject) {
         for (XWPFParagraph paragraph : xwpfFooter.getParagraphs()) {
             renderParagraph(paragraph, jsonObject);
         }
@@ -59,26 +62,12 @@ public final class RenderWordUtil {
         }
     }
 
-
-    private static void writeOutput(XWPFDocument doc, String output) {
-        try (FileOutputStream out = new FileOutputStream(output)) {
-            doc.write(out);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static InputStream readTemplate(String urlTemplate) {
-        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-        return classloader.getResourceAsStream(urlTemplate);
-    }
-
-    private static void renderPicture(XWPFPictureData pictureData, JSONObject jsonObject) {
+    private void renderPicture(XWPFPictureData pictureData, JSONObject jsonObject) {
         try {
 
             if (jsonObject.get(pictureData.getFileName()) != null && !jsonObject.get(pictureData.getFileName()).toString().isBlank()) {
                 try (
-                        InputStream inputStream = new URL((String) jsonObject.get(pictureData.getFileName())).openStream();
+                        InputStream inputStream = getImage(jsonObject.get(pictureData.getFileName()).toString());
                         OutputStream outputStream = pictureData.getPackagePart().getOutputStream();
                 ) {
                     byte[] buffer = new byte[2048];
@@ -96,7 +85,7 @@ public final class RenderWordUtil {
         System.out.println(jsonObject.get(pictureData.getFileName()));
     }
 
-    private static void renderParagraph(XWPFParagraph paragraph, JSONObject jsonObject) {
+    private void renderParagraph(XWPFParagraph paragraph, JSONObject jsonObject) {
         if (paragraph.getRuns() != null) {
             for (XWPFRun run : paragraph.getRuns()) {
                 fillObject(run, jsonObject);
@@ -104,8 +93,9 @@ public final class RenderWordUtil {
         }
     }
 
-    private static void fillObject(XWPFRun run, JSONObject jsonObject) {
+    private void fillObject(XWPFRun run, JSONObject jsonObject) {
         String text = run.getText(0);
+        System.out.println(text);
         if (text != null && !text.isBlank()) {
             for (Map.Entry<String, Object> entry : jsonObject.toMap().entrySet()) {
                 text = text.replace("{" + entry.getKey() + "}", entry.getValue().toString());
@@ -114,11 +104,11 @@ public final class RenderWordUtil {
         }
     }
 
-    private static String getValuableName(String text) {
+    private String getValuableName(String text) {
         return text.substring(text.indexOf("{") + 1, text.indexOf("}"));
     }
 
-    private static TableFormat getFormatTable(XWPFTable table) {
+    private TableFormat getFormatTable(XWPFTable table) {
         TableFormat tableFormat = new TableFormat();
         List<XWPFTableCell> formatTableCell = table.getRows().get(0).getTableCells();
         String format = formatTableCell.get(0).getText();
@@ -136,7 +126,7 @@ public final class RenderWordUtil {
         return tableFormat;
     }
 
-    private static void renderTable(XWPFTable table, JSONObject jsonObject) {
+    private void renderTable(XWPFTable table, JSONObject jsonObject) {
         TableFormat tableFormat = getFormatTable(table);
         int tableSize = table.getRows().size();
         JSONArray jsonArray = jsonObject.getJSONArray(tableFormat.getTableName());
@@ -154,7 +144,7 @@ public final class RenderWordUtil {
 
     }
 
-    private static void fillObjectTableCell(XWPFTableRow row, JSONObject jsonObject) {
+    private void fillObjectTableCell(XWPFTableRow row, JSONObject jsonObject) {
         for (XWPFTableCell tableCell : row.getTableCells()) {
             for (XWPFRun run : tableCell.getParagraphs().get(0).getRuns()) {
                 fillObject(run, jsonObject);
@@ -162,7 +152,7 @@ public final class RenderWordUtil {
         }
     }
 
-    private static boolean checkEmptyCell(XWPFTableRow row) {
+    private boolean checkEmptyCell(XWPFTableRow row) {
         for (XWPFTableCell tableCell : row.getTableCells()) {
             if (!tableCell.getText().isBlank()) {
                 return false;
@@ -171,7 +161,7 @@ public final class RenderWordUtil {
         return true;
     }
 
-    private static void fillTableCell(XWPFTableRow row, JSONObject object, TableFormat tableFormat) {
+    private void fillTableCell(XWPFTableRow row, JSONObject object, TableFormat tableFormat) {
         for (int i = 0; i < tableFormat.getFields().size(); i++) {
             row.getTableCells().get(i).getParagraphs().get(0).getRuns().get(0).setText((String) object.get(tableFormat.getFields().get(i)), 0);
         }

@@ -7,6 +7,7 @@ public class RenderJsonTemplate {
 
 
     public static void main(String[] args) {
+        BaseRenderWord renderWord = new RenderWord();
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("demo", "Demo render doc");
         JSONArray jsonArray = new JSONArray();
@@ -19,13 +20,12 @@ public class RenderJsonTemplate {
         jsonObject.put("name", "Đoàn Hiếu");
         jsonObject.put("image1.jpeg", "https://znews-photo.zingcdn.me/w860/Uploaded/tmuizn/2022_04_27/elon_musk_spaceX_reuters.jpg");
         try {
-            RenderWordUtil.renderWord(jsonObject, "demo.docx", "simple.docx");
+            renderWord.render(jsonObject, "demo.docx", "simple.docx");
         } catch (Exception e) {
             System.out.println("ERROR");
             System.out.println(e.getMessage());
         }
     }
-
 
     public static class TableObject {
         private String stt;

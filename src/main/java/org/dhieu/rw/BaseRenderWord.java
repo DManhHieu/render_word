@@ -47,7 +47,12 @@ public abstract class BaseRenderWord implements IRenderWord {
 
     protected abstract InputStream readTemplate(String urlTemplate);
 
+    protected abstract String getValuableName(String text);
+
     protected abstract InputStream getImage(String url) throws IOException;
+
+    protected abstract String toFormatValuable(String key);
+
 
     private <T extends XWPFHeaderFooter> void renderHeaderFooter(T xwpfFooter, JSONObject jsonObject) throws IOException {
         for (XWPFParagraph paragraph : xwpfFooter.getParagraphs()) {
@@ -88,14 +93,10 @@ public abstract class BaseRenderWord implements IRenderWord {
         String text = run.getText(0);
         if (text != null && !text.isBlank()) {
             for (Map.Entry<String, Object> entry : jsonObject.toMap().entrySet()) {
-                text = text.replace("{" + entry.getKey() + "}", entry.getValue().toString());
+                text = text.replace(toFormatValuable(entry.getKey()), entry.getValue().toString());
             }
             run.setText(text, 0);
         }
-    }
-
-    private String getValuableName(String text) {
-        return text.substring(text.indexOf("{") + 1, text.indexOf("}"));
     }
 
     private TableFormat getFormatTable(XWPFTable table) {
@@ -104,7 +105,7 @@ public abstract class BaseRenderWord implements IRenderWord {
         String format = formatTableCell.get(0).getText();
         tableFormat.setTableName(getValuableName(format));
         tableFormat.setFields(new ArrayList<>());
-        String field0String = format.substring(format.indexOf("}") + 1);
+        String field0String = format.substring(format.indexOf(tableFormat.getTableName()) + tableFormat.getTableName().length());
         String field = getValuableName(field0String);
         tableFormat.getFields().add(field);
         for (int i = 1; i < formatTableCell.size(); i++) {

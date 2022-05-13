@@ -6,8 +6,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public final class RenderWord extends BaseRenderWord {
+public class RenderWord extends BaseRenderWord {
+
+    private final Pattern pattern = Pattern.compile("\\$\\{(.*?)}");
+
     @Override
     protected void writeOutput(XWPFDocument doc, String output) {
         try (FileOutputStream out = new FileOutputStream(output)) {
@@ -26,6 +31,20 @@ public final class RenderWord extends BaseRenderWord {
     @Override
     protected InputStream getImage(String url) throws IOException {
         return new URL(url).openStream();
+    }
+
+    @Override
+    protected String toFormatValuable(String key) {
+        return "${" + key + "}";
+    }
+
+    @Override
+    protected String getValuableName(String text) {
+        Matcher matcher = pattern.matcher(text);
+        if (matcher.find()) {
+            return matcher.group().replace("${", "").replace("}", "").trim();
+        }
+        return null;
     }
 
 }

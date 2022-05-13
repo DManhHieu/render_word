@@ -155,6 +155,9 @@ public abstract class BaseRenderWord implements IRenderWord {
     private void fillTableCell(XWPFTableRow row, JSONObject object, TableFormat tableFormat) {
         for (int i = 0; i < tableFormat.getFields().size(); i++) {
             row.getTableCells().get(i).getParagraphs().get(0).getRuns().get(0).setText((String) object.get(tableFormat.getFields().get(i)), 0);
+            for (int j = 1; j < row.getTableCells().get(i).getParagraphs().get(0).getRuns().size(); j++) {
+                row.getTableCells().get(i).getParagraphs().get(0).getRuns().get(j).setText("", 0);
+            }
         }
     }
 

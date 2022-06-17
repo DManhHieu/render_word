@@ -20,27 +20,27 @@ public abstract class BaseRenderWord implements IRenderWord {
 
     public void render(JSONObject jsonObject, InputStream input, String output) throws IOException {
 
-        try (XWPFDocument doc = new XWPFDocument(input)) {
-            for (XWPFTable table : doc.getTables()) {
-                renderTable(table, jsonObject);
-            }
-
-            for (XWPFParagraph paragraph : doc.getParagraphs()) {
-                renderParagraph(paragraph, jsonObject);
-            }
-
-            for (XWPFHeader xwpfHeader : doc.getHeaderList()) {
-                renderHeaderFooter(xwpfHeader, jsonObject);
-            }
-            for (XWPFFooter xwpfFooter : doc.getFooterList()) {
-                renderHeaderFooter(xwpfFooter, jsonObject);
-            }
-
-            for (XWPFPictureData pictureData : doc.getAllPictures()) {
-                renderPicture(pictureData, jsonObject);
-            }
-            writeOutput(doc, output);
+        XWPFDocument doc = new XWPFDocument(input);
+        for (XWPFTable table : doc.getTables()) {
+            renderTable(table, jsonObject);
         }
+
+        for (XWPFParagraph paragraph : doc.getParagraphs()) {
+            renderParagraph(paragraph, jsonObject);
+        }
+
+        for (XWPFHeader xwpfHeader : doc.getHeaderList()) {
+            renderHeaderFooter(xwpfHeader, jsonObject);
+        }
+        for (XWPFFooter xwpfFooter : doc.getFooterList()) {
+            renderHeaderFooter(xwpfFooter, jsonObject);
+        }
+
+//        for (XWPFPictureData pictureData : doc.getAllPictures()) {
+//            renderPicture(pictureData, jsonObject);
+//        }
+        writeOutput(doc, output);
+
     }
 
     protected abstract void writeOutput(XWPFDocument doc, String output);
@@ -61,9 +61,9 @@ public abstract class BaseRenderWord implements IRenderWord {
         for (XWPFTable table : xwpfFooter.getTables()) {
             renderTable(table, jsonObject);
         }
-        for (XWPFPictureData pictureData : xwpfFooter.getAllPictures()) {
-            renderPicture(pictureData, jsonObject);
-        }
+//        for (XWPFPictureData pictureData : xwpfFooter.getAllPictures()) {
+//            renderPicture(pictureData, jsonObject);
+//        }
     }
 
     private void renderPicture(XWPFPictureData pictureData, JSONObject jsonObject) throws IOException {
@@ -103,7 +103,11 @@ public abstract class BaseRenderWord implements IRenderWord {
         TableFormat tableFormat = new TableFormat();
         List<XWPFTableCell> formatTableCell = table.getRows().get(0).getTableCells();
         String format = formatTableCell.get(0).getText();
-        tableFormat.setTableName(getValuableName(format));
+        String tableName = getValuableName(format);
+        if (tableName == null) {
+            return null;
+        }
+        tableFormat.setTableName(tableName);
         tableFormat.setFields(new ArrayList<>());
         String field0String = format.substring(format.indexOf(tableFormat.getTableName()) + tableFormat.getTableName().length());
         String field = getValuableName(field0String);
@@ -119,6 +123,9 @@ public abstract class BaseRenderWord implements IRenderWord {
 
     private void renderTable(XWPFTable table, JSONObject jsonObject) {
         TableFormat tableFormat = getFormatTable(table);
+        if (tableFormat == null) {
+            return;
+        }
         int tableSize = table.getRows().size();
         JSONArray jsonArray = jsonObject.getJSONArray(tableFormat.getTableName());
         for (int i = 0; i < Math.max(jsonArray.length(), tableSize); i++) {

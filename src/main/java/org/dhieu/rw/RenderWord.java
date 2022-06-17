@@ -1,5 +1,7 @@
 package org.dhieu.rw;
 
+import org.apache.poi.xwpf.converter.pdf.PdfConverter;
+import org.apache.poi.xwpf.converter.pdf.PdfOptions;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
 import java.io.FileOutputStream;
@@ -13,10 +15,20 @@ public class RenderWord extends BaseRenderWord {
 
     private final Pattern pattern = Pattern.compile("\\$\\{(.*?)}");
 
+//    @Override
+//    protected void writeOutput(XWPFDocument doc, String output) {
+//        try (FileOutputStream out = new FileOutputStream(output)) {
+//            doc.write(out);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
     @Override
     protected void writeOutput(XWPFDocument doc, String output) {
         try (FileOutputStream out = new FileOutputStream(output)) {
-            doc.write(out);
+            PdfOptions pdfOptions = PdfOptions.getDefault();
+            PdfConverter.getInstance().convert(doc, out, pdfOptions);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,7 +1,7 @@
 package org.dhieu.rw;
 
-import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.InputStream;
 
@@ -13,11 +13,10 @@ public class RenderJsonTemplate {
             ClassLoader classloader = Thread.currentThread().getContextClassLoader();
             InputStream inputStream = classloader.getResourceAsStream("demo.json");
             assert inputStream != null;
-            JSONObject jsonObject = new JSONObject(IOUtils.toString(inputStream));
-            renderWord.render(jsonObject, "demo.docx", "simple.docx");
+            JSONObject jsonObject = new JSONObject(new JSONTokener((inputStream)));
+            renderWord.render(jsonObject, "demo.docx", "demo.pdf");
         } catch (Exception e) {
-            System.out.println("ERROR");
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 }

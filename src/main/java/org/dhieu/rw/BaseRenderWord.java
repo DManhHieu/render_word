@@ -32,13 +32,14 @@ public abstract class BaseRenderWord implements IRenderWord {
         for (XWPFHeader xwpfHeader : doc.getHeaderList()) {
             renderHeaderFooter(xwpfHeader, jsonObject);
         }
+
         for (XWPFFooter xwpfFooter : doc.getFooterList()) {
             renderHeaderFooter(xwpfFooter, jsonObject);
         }
 
-//        for (XWPFPictureData pictureData : doc.getAllPictures()) {
-//            renderPicture(pictureData, jsonObject);
-//        }
+        for (XWPFPictureData pictureData : doc.getAllPictures()) {
+            renderPicture(pictureData, jsonObject);
+        }
         writeOutput(doc, output);
 
     }
@@ -61,9 +62,9 @@ public abstract class BaseRenderWord implements IRenderWord {
         for (XWPFTable table : xwpfFooter.getTables()) {
             renderTable(table, jsonObject);
         }
-//        for (XWPFPictureData pictureData : xwpfFooter.getAllPictures()) {
-//            renderPicture(pictureData, jsonObject);
-//        }
+        for (XWPFPictureData pictureData : xwpfFooter.getAllPictures()) {
+            renderPicture(pictureData, jsonObject);
+        }
     }
 
     private void renderPicture(XWPFPictureData pictureData, JSONObject jsonObject) throws IOException {

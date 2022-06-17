@@ -123,19 +123,24 @@ public abstract class BaseRenderWord implements IRenderWord {
 
     private void renderTable(XWPFTable table, JSONObject jsonObject) {
         TableFormat tableFormat = getFormatTable(table);
-        if (tableFormat == null) {
-            return;
-        }
+
         int tableSize = table.getRows().size();
-        JSONArray jsonArray = jsonObject.getJSONArray(tableFormat.getTableName());
-        for (int i = 0; i < Math.max(jsonArray.length(), tableSize); i++) {
-            if (i < jsonArray.length() && tableSize > i && (i == 0 || checkEmptyCell(table.getRows().get(i)))) {
-                fillTableCell(table.getRows().get(i), jsonArray.getJSONObject(i), tableFormat);
-            } else if (i < jsonArray.length() && (tableSize <= i || !checkEmptyCell(table.getRows().get(i)))) {
-                XWPFTableRow newRow = new XWPFTableRow((CTRow) table.getRows().get(i - 1).getCtRow().copy(), table);
-                fillTableCell(newRow, jsonArray.getJSONObject(i), tableFormat);
-                table.addRow(newRow, i);
-                tableSize++;
+        JSONArray jsonArray = null;
+        int arrayLength = 0;
+        if (tableFormat != null) {
+            jsonArray = jsonObject.getJSONArray(tableFormat.getTableName());
+            arrayLength = jsonArray.length();
+        }
+        for (int i = 0; i < Math.max(arrayLength, tableSize); i++) {
+            if (jsonArray != null) {
+                if (i < jsonArray.length() && tableSize > i && (i == 0 || checkEmptyCell(table.getRows().get(i)))) {
+                    fillTableCell(table.getRows().get(i), jsonArray.getJSONObject(i), tableFormat);
+                } else if (i < jsonArray.length() && (tableSize <= i || !checkEmptyCell(table.getRows().get(i)))) {
+                    XWPFTableRow newRow = new XWPFTableRow((CTRow) table.getRows().get(i - 1).getCtRow().copy(), table);
+                    fillTableCell(newRow, jsonArray.getJSONObject(i), tableFormat);
+                    table.addRow(newRow, i);
+                    tableSize++;
+                }
             }
             fillObjectTableCell(table.getRows().get(i), jsonObject);
         }

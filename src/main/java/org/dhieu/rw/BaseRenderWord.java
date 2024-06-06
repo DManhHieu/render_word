@@ -52,7 +52,13 @@ public abstract class BaseRenderWord implements IRenderWord {
 
     protected abstract InputStream getImage(String url) throws IOException;
 
-    protected abstract String toFormatValuable(String key);
+    protected String toFormatValuable(String key) {
+        return preFormat() + key + postFormat();
+    }
+
+    protected abstract String preFormat();
+
+    protected abstract String postFormat();
 
 
     private <T extends XWPFHeaderFooter> void renderHeaderFooter(T xwpfFooter, JSONObject jsonObject) throws IOException {
@@ -85,27 +91,45 @@ public abstract class BaseRenderWord implements IRenderWord {
     private void renderParagraph(XWPFParagraph paragraph, JSONObject jsonObject) {
         if (paragraph.getRuns() != null) {
             List<Integer> removes = new ArrayList<>();
-            int position = 0;
-            XWPFRun prefix = null;
-            for (XWPFRun run : paragraph.getRuns()) {
-                if (run.toString().equals("\t")) {
-                    removes.add(position);
-                    if (prefix != null) {
-                        String text = prefix.getText(0);
-                        if (text == null) {
-                            text = "";
-                        }
-                        prefix.setText(text + "       ", 0);
-                    }
+            XWPFRun preRun = null;
+            for (int i = 0; i < paragraph.getRuns().size(); i++) {
+                XWPFRun run = paragraph.getRuns().get(i);
+                replaceTab(run, i, preRun, removes);
+                if (preFormat().equals(run.toString())
+                        && paragraph.getRuns().get(i + 1).toString() != null
+                        && postFormat().equals(paragraph.getRuns().get(i + 2).toString())
+                ) {
+                    replaceValuable(run, paragraph.getRuns().get(i + 1), paragraph.getRuns().get(i + 2), jsonObject);
+                    i = i + 2;
                 } else {
                     fillObject(run, jsonObject);
                 }
-                position++;
-                prefix = run;
+                preRun = run;
             }
             removes.forEach(
                     paragraph::removeRun
             );
+        }
+    }
+
+    private void replaceValuable(XWPFRun pre, XWPFRun key,XWPFRun post,JSONObject jsonObject){
+        Object value = jsonObject.get(key.toString());
+        String valueString = value != null ? value.toString() : "";
+        pre.setText(valueString, 0);
+        key.setText("", 0);
+        post.setText("", 0);
+    }
+
+    private void replaceTab(XWPFRun run, int index, XWPFRun preRun, List<Integer> removes) {
+        if (run.toString().equals("\t")) {
+            removes.add(index);
+            if (preRun != null) {
+                String text = preRun.getText(0);
+                if (text == null) {
+                    text = "";
+                }
+                preRun.setText(text + "       ", 0);
+            }
         }
     }
 
@@ -169,8 +193,8 @@ public abstract class BaseRenderWord implements IRenderWord {
 
     private void fillObjectTableCell(XWPFTableRow row, JSONObject jsonObject) {
         for (XWPFTableCell tableCell : row.getTableCells()) {
-            for (XWPFRun run : tableCell.getParagraphs().get(0).getRuns()) {
-                fillObject(run, jsonObject);
+            for (XWPFParagraph paragraph : tableCell.getParagraphs()) {
+                renderParagraph(paragraph, jsonObject);
             }
         }
     }

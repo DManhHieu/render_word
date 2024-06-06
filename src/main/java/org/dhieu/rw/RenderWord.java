@@ -45,15 +45,20 @@ public class RenderWord extends BaseRenderWord {
     }
 
     @Override
-    protected String toFormatValuable(String key) {
-        return "${" + key + "}";
+    protected String preFormat() {
+        return "${";
+    }
+
+    @Override
+    protected String postFormat() {
+        return "}";
     }
 
     @Override
     protected String getValuableName(String text) {
         Matcher matcher = pattern.matcher(text);
         if (matcher.find()) {
-            return matcher.group().replace("${", "").replace("}", "").trim();
+            return matcher.group().replace(preFormat(), "").replace(postFormat(), "").trim();
         }
         return null;
     }

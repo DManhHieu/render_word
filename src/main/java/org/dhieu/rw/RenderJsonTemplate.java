@@ -1,12 +1,16 @@
 package org.dhieu.rw;
 
+import com.lowagie.text.FontFactory;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.InputStream;
+import java.util.Objects;
 
 public class RenderJsonTemplate {
-
+    static {
+        FontFactory.registerDirectory(Objects.requireNonNull(RenderJsonTemplate.class.getClassLoader().getResource("font")).getPath(), true);
+    }
     public static void main(String[] args) {
         try {
             IRenderWord renderWord = new RenderWord();

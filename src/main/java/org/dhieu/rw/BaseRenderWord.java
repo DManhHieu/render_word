@@ -84,9 +84,28 @@ public abstract class BaseRenderWord implements IRenderWord {
 
     private void renderParagraph(XWPFParagraph paragraph, JSONObject jsonObject) {
         if (paragraph.getRuns() != null) {
+            List<Integer> removes = new ArrayList<>();
+            int position = 0;
+            XWPFRun prefix = null;
             for (XWPFRun run : paragraph.getRuns()) {
-                fillObject(run, jsonObject);
+                if (run.toString().equals("\t")) {
+                    removes.add(position);
+                    if (prefix != null) {
+                        String text = prefix.getText(0);
+                        if (text == null) {
+                            text = "";
+                        }
+                        prefix.setText(text + "       ", 0);
+                    }
+                } else {
+                    fillObject(run, jsonObject);
+                }
+                position++;
+                prefix = run;
             }
+            removes.forEach(
+                    paragraph::removeRun
+            );
         }
     }
 
@@ -102,8 +121,8 @@ public abstract class BaseRenderWord implements IRenderWord {
 
     private TableFormat getFormatTable(XWPFTable table) {
         TableFormat tableFormat = new TableFormat();
-        List<XWPFTableCell> formatTableCell = table.getRows().get(0).getTableCells();
-        String format = formatTableCell.get(0).getText();
+        List<XWPFTableCell> formatTableCell = table.getRows().getFirst().getTableCells();
+        String format = formatTableCell.getFirst().getText();
         String tableName = getValuableName(format);
         if (tableName == null) {
             return null;
@@ -114,7 +133,7 @@ public abstract class BaseRenderWord implements IRenderWord {
         String field = getValuableName(field0String);
         tableFormat.getFields().add(field);
         for (int i = 1; i < formatTableCell.size(); i++) {
-            String cellText = table.getRows().get(0).getTableCells().get(i).getText();
+            String cellText = table.getRows().getFirst().getTableCells().get(i).getText();
             if (cellText != null && !cellText.isBlank()) {
                 tableFormat.getFields().add(getValuableName(cellText));
             }
@@ -150,7 +169,7 @@ public abstract class BaseRenderWord implements IRenderWord {
 
     private void fillObjectTableCell(XWPFTableRow row, JSONObject jsonObject) {
         for (XWPFTableCell tableCell : row.getTableCells()) {
-            for (XWPFRun run : tableCell.getParagraphs().get(0).getRuns()) {
+            for (XWPFRun run : tableCell.getParagraphs().getFirst().getRuns()) {
                 fillObject(run, jsonObject);
             }
         }
@@ -167,9 +186,9 @@ public abstract class BaseRenderWord implements IRenderWord {
 
     private void fillTableCell(XWPFTableRow row, JSONObject object, TableFormat tableFormat) {
         for (int i = 0; i < tableFormat.getFields().size(); i++) {
-            row.getTableCells().get(i).getParagraphs().get(0).getRuns().get(0).setText((String) object.get(tableFormat.getFields().get(i)), 0);
-            for (int j = 1; j < row.getTableCells().get(i).getParagraphs().get(0).getRuns().size(); j++) {
-                row.getTableCells().get(i).getParagraphs().get(0).getRuns().get(j).setText("", 0);
+            row.getTableCells().get(i).getParagraphs().getFirst().getRuns().getFirst().setText((String) object.get(tableFormat.getFields().get(i)), 0);
+            for (int j = 1; j < row.getTableCells().get(i).getParagraphs().getFirst().getRuns().size(); j++) {
+                row.getTableCells().get(i).getParagraphs().getFirst().getRuns().get(j).setText("", 0);
             }
         }
     }

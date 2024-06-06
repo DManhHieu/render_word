@@ -1,6 +1,5 @@
 package org.dhieu.rw;
 
-import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
 import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
@@ -28,7 +27,7 @@ public class RenderWord extends BaseRenderWord {
     protected void writeOutput(XWPFDocument doc, String output) {
         try (FileOutputStream out = new FileOutputStream(output)) {
             PdfOptions pdfOptions = PdfOptions.getDefault();
-            PdfConverter.getInstance().convert(doc, out, pdfOptions);
+            FixPdfConverter.getInstance().convert(doc, out, pdfOptions);
         } catch (IOException e) {
             e.printStackTrace();
         }

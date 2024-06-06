@@ -18,7 +18,7 @@ public class RenderJsonTemplate {
             InputStream inputStream = classloader.getResourceAsStream("demo.json");
             assert inputStream != null;
             JSONObject jsonObject = new JSONObject(new JSONTokener((inputStream)));
-            renderWord.render(jsonObject, "demo.docx", "demo.pdf");
+            renderWord.render(jsonObject, "Terms of Service - Fee Insider (EmbedDefi).docx", "demo.pdf");
         } catch (Exception e) {
             e.printStackTrace();
         }

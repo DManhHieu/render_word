@@ -326,7 +326,7 @@ public class PdfMapper
                 {
                     pdfParagraph.setLeading( lineSpacing.getLeading() );
                 }
-                if ( lineSpacing.getMultipleLeading() != null )
+                if ( lineSpacing.getMultipleLeading() != null && lineSpacing.getMultipleLeading() != 0 )
                 {
                     pdfParagraph.setMultipliedLeading( lineSpacing.getMultipleLeading() );
                 }
@@ -550,9 +550,8 @@ public class PdfMapper
             this.currentRunBackgroundColor = stylesDocument.getTextHighlighting( docxRun );
         }
 
-        FixStylableParagraph pdfParagraph = new FixStylableParagraph((StylableParagraph)pdfParagraphContainer);
+        StylableParagraph pdfParagraph = (StylableParagraph) pdfParagraphContainer;
         pdfParagraph.adjustMultipliedLeading( currentRunFontAscii );
-        pdfParagraph.adjustLeading(currentRunFontAscii);
 
         // addd symbol list item chunk if needed.
         String listItemText = pdfParagraph.getListItemText();

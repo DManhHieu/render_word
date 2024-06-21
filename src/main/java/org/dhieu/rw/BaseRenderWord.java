@@ -90,11 +90,10 @@ public abstract class BaseRenderWord implements IRenderWord {
 
     private void renderParagraph(XWPFParagraph paragraph, JSONObject jsonObject) {
         if (paragraph.getRuns() != null) {
-            List<Integer> removes = new ArrayList<>();
             XWPFRun preRun = null;
             for (int i = 0; i < paragraph.getRuns().size(); i++) {
                 XWPFRun run = paragraph.getRuns().get(i);
-                replaceTab(run, i, preRun, removes);
+                replaceTab(run, preRun);
                 if (preFormat().equals(run.toString())
                         && paragraph.getRuns().get(i + 1).toString() != null
                         && postFormat().equals(paragraph.getRuns().get(i + 2).toString())
@@ -106,9 +105,6 @@ public abstract class BaseRenderWord implements IRenderWord {
                 }
                 preRun = run;
             }
-            removes.forEach(
-                    paragraph::removeRun
-            );
         }
     }
 
@@ -120,16 +116,13 @@ public abstract class BaseRenderWord implements IRenderWord {
         post.setText("", 0);
     }
 
-    private void replaceTab(XWPFRun run, int index, XWPFRun preRun, List<Integer> removes) {
-        if (run.toString().equals("\t")) {
-            removes.add(index);
-            if (preRun != null) {
-                String text = preRun.getText(0);
-                if (text == null) {
-                    text = "";
-                }
-                preRun.setText(text + "       ", 0);
+    private void replaceTab(XWPFRun run, XWPFRun preRun) {
+        if (run.toString().equals("\t") && preRun != null) {
+            String text = preRun.getText(0);
+            if (text == null) {
+                text = "";
             }
+            preRun.setText(text + "      ", 0);
         }
     }
 
